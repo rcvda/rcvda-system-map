@@ -22728,8 +22728,17 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__140__;
     var title=container.getAttribute('data-title')||'';
     if(window.RCVDA_SYSTEM_MAP_DATA){ build(container,window.RCVDA_SYSTEM_MAP_DATA,title); return; }
     var src=container.getAttribute('data-src'); if(!src) return;
-    fetch(src).then(function(r){return r.json();}).then(function(data){ build(container,data,title); })
-      .catch(function(e){ container.innerHTML='<p style="padding:1rem;color:#a15c00">Could not load map data.</p>'; });
+    var fb=container.getAttribute('data-fallback')||'';
+    function fail(){ container.innerHTML='<p style="padding:1rem;color:#a15c00">Could not load map data.</p>'; }
+    function load(url,onFail){
+      fetch(url).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+        .then(function(data){ build(container,data,title); })
+        .catch(function(e){ onFail(); });
+    }
+    // Try the primary source (usually the CDN); on any failure fall back to the
+    // bundled copy shipped in the plugin, so the map still renders if the CDN is
+    // unreachable or the repo/ref isn't public yet.
+    load(src,function(){ if(fb && fb!==src){ load(fb,fail); } else { fail(); } });
   }
 
   function build(container,data,title){
