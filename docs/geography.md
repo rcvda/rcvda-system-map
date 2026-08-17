@@ -70,9 +70,16 @@ Verified counts against the current 399-node model: `tees-valley` = 399 on / 397
 `lens=` sets the opening lens, `context="off"` for the tight view; both are switchable live in the
 sidebar. E.g. `[rcvda_system_map lens="south-tees"]`, `[rcvda_system_map lens="redcar-cleveland" context="off"]`.
 
+## Tier
+
+`tier` (local / sub-regional / regional / national) is aligned to the coded `area`: local
+authority → local; grouping or Combined Authority → sub-regional; North East → regional; England →
+national. Deliberate national tags are preserved (the four Parliament/MP nodes, UK Shared Prosperity
+Fund, NHS England, etc. stay national even where their `area` is a local patch — `area` places them
+on the map, `tier` records their institutional level). Distribution: local 290, sub-regional 89,
+regional 9, national 11.
+
 ## Notes / to-do
 
-- `tier` was left untouched in the geography recode; a few values look off (e.g. North Yorkshire
-  Council tagged `regional`) — a separate cleanup pass.
 - Constituencies currently sit only as a `constituency` field; a constituency lens (PCON `E14…`
   codes) is a clean future add on the same machinery.
