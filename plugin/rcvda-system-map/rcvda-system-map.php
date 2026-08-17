@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       RCVDA System Map
- * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Ships loaded with the South Tees public system dataset.
- * Version:           0.2.0
+ * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties). Ships loaded with the South Tees / Tees Valley public system dataset.
+ * Version:           0.3.0
  * Author:            RCVDA
  * License:           GPL-2.0-or-later
  * Text Domain:       rcvda-system-map
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'RCVDA_SYSTEM_MAP_VER', '0.2.0' );
+define( 'RCVDA_SYSTEM_MAP_VER', '0.3.0' );
 define( 'RCVDA_SYSTEM_MAP_URL', plugin_dir_url( __FILE__ ) );
 define( 'RCVDA_SYSTEM_MAP_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -93,26 +93,35 @@ function rcvda_system_map_register_assets() {
 add_action( 'init', 'rcvda_system_map_register_assets' );
 
 /**
- * [rcvda_system_map data="south-tees" source="live" ref="" height="760px" title="…"]
+ * [rcvda_system_map data="south-tees" lens="tees-valley" context="on" source="live" ref="" height="760px" title="…"]
  *
- * data   — dataset slug from the registry (default "south-tees"), OR a full
- *          http(s) URL to a system-data.json to use directly (advanced override).
- * source — "live" (default): load the dataset from the jsDelivr CDN, falling back
- *          to the copy bundled inside the plugin if the CDN is unreachable or the
- *          repo/ref is not (yet) public. "bundled": use only the bundled copy — fully
- *          self-contained, zero external requests.
- * ref    — git branch or release tag for live data (default: filterable "main").
- * height — container height (default 760px).
- * title  — heading shown in the map (default: the dataset's label).
+ * data    — dataset slug from the registry (default "south-tees"), OR a full
+ *           http(s) URL to a system-data.json to use directly (advanced override).
+ * lens    — initial geography lens the map opens on (switchable in the sidebar).
+ *           Administrative: tees-valley (default), cleveland, south-tees, north-tees,
+ *           darlington, hartlepool, middlesbrough, redcar-cleveland, stockton.
+ *           Ceremonial county: ceremonial-north-yorkshire, ceremonial-county-durham.
+ * context — "on" (default): also show the wider bodies a lens plugs into (regional/
+ *           national and connected external partners). "off": show only bodies native
+ *           to the lens area.
+ * source  — "live" (default): load the dataset from the jsDelivr CDN, falling back
+ *           to the copy bundled inside the plugin if the CDN is unreachable or the
+ *           repo/ref is not (yet) public. "bundled": use only the bundled copy — fully
+ *           self-contained, zero external requests.
+ * ref     — git branch or release tag for live data (default: filterable "main").
+ * height  — container height (default 760px).
+ * title   — heading shown in the map (default: the dataset's label).
  */
 function rcvda_system_map_shortcode( $atts ) {
 	$atts = shortcode_atts(
 		array(
-			'height' => '760px',
-			'title'  => '',
-			'data'   => 'south-tees',
-			'source' => 'live',
-			'ref'    => '',
+			'height'  => '760px',
+			'title'   => '',
+			'data'    => 'south-tees',
+			'lens'    => 'tees-valley',
+			'context' => 'on',
+			'source'  => 'live',
+			'ref'     => '',
 		),
 		$atts,
 		'rcvda_system_map'
@@ -151,15 +160,20 @@ function rcvda_system_map_shortcode( $atts ) {
 		$title = 'System map';
 	}
 
+	$lens    = sanitize_key( $atts['lens'] );
+	$context = ( 'off' === strtolower( $atts['context'] ) ) ? 'off' : 'on';
+
 	static $n = 0;
 	$n++;
 	$id = 'rcvda-system-map-' . $n;
 
 	return sprintf(
-		'<div class="rcvda-system-map" id="%s" data-src="%s" data-fallback="%s" data-title="%s" style="height:%s"></div>',
+		'<div class="rcvda-system-map" id="%s" data-src="%s" data-fallback="%s" data-lens="%s" data-context="%s" data-title="%s" style="height:%s"></div>',
 		esc_attr( $id ),
 		esc_url( $src ),
 		esc_url( $fallback ),
+		esc_attr( $lens ),
+		esc_attr( $context ),
 		esc_attr( $title ),
 		esc_attr( $atts['height'] )
 	);

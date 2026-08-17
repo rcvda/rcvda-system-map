@@ -28,15 +28,26 @@ selected per-map with the shortcode's `data="<slug>"` attribute — no code chan
 | `dist/rcvda-system-map.zip` | Latest built plugin — upload this to WordPress. |
 | `dist/south-tees-public-system-map.html` | Latest standalone viewer — open in any browser. |
 | `docs/schema.md`, `docs/self-hosted-spec.md` | Data model + the future CPT-backed architecture. |
+| `docs/geography.md` | Coded geography (GSS codes), the lenses, and how a lens filters the map. |
 | `docs/data-sourcing.md` | How the live-fetch-with-fallback data sourcing works. |
 | `docs/sources/` | Source archive + `_manifest.md` (provenance for every sourced node). |
 
 ## Data model (brief)
 
-Each node has: `id, label, type, group` (system domain), `tier` (geography), `org` (container for
-internal structures), `subtype`, `person`, `status` (`confirmed`/`verify`), `source`.
+Each node has: `id, label, type, group` (system domain), `tier`, `org` (container for internal
+structures), `subtype`, `person`, `status` (`confirmed`/`verify`), `source`, plus coded geography —
+`area` (ONS GSS code or grouping slug), `area_label`, `ceremonial`, `external`, `constituency`.
 Each edge has: `source, target, label, kind` (one of: governance, officer, political,
-commissioning, funding, membership, delivery), `weight`. See `docs/schema.md`.
+commissioning, funding, membership, delivery), `weight`. See `docs/schema.md` and `docs/geography.md`.
+
+## Lenses
+
+The data is Tees Valley-wide and viewed through **lenses** — saved geography filters over the one
+model, switchable in the sidebar or set on the shortcode. Administrative lenses: `tees-valley`
+(default), `cleveland`, `south-tees`, `north-tees`, and each borough; ceremonial-county lenses:
+`ceremonial-north-yorkshire`, `ceremonial-county-durham`. `context="on"` (default) also shows the
+regional/national and connected-external bodies a lens plugs into; `context="off"` shows only the
+area's own bodies. Full detail in [`docs/geography.md`](docs/geography.md).
 
 ## Data sourcing
 
@@ -65,8 +76,9 @@ copy), regenerates `dist/south-tees-public-system-map.html`, and repackages `dis
 1. WordPress admin → **Plugins → Add New → Upload Plugin** → `dist/rcvda-system-map.zip` → Install → Activate.
 2. Add the shortcode to any page: `[rcvda_system_map]`
 
-Common attributes: `data="south-tees"`, `source="live"` (or `"bundled"`), `ref="v0.2.0"`,
-`height="760px"`, `title="…"`. See the plugin's `readme.txt` for the full list.
+Common attributes: `lens="south-tees"`, `context="off"`, `data="south-tees"`,
+`source="live"` (or `"bundled"`), `ref="v0.3.0"`, `height="760px"`, `title="…"`. See the plugin's
+`readme.txt` and `docs/geography.md` for the full list.
 
 ## Updating the map
 

@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -34,12 +34,24 @@ Place the shortcode on any page or post:
 Optional attributes:
   data="south-tees"   dataset slug from the registry (default), OR a full https URL to a
                       system-data.json to use directly (advanced override)
+  lens="tees-valley"  geography lens the map opens on (switchable in the sidebar):
+                      tees-valley (default), cleveland, south-tees, north-tees, darlington,
+                      hartlepool, middlesbrough, redcar-cleveland, stockton,
+                      ceremonial-north-yorkshire, ceremonial-county-durham
+  context="on"        "on" (default) also shows the wider bodies a lens plugs into
+                      (regional/national + connected external partners); "off" shows only
+                      bodies native to the lens area
   source="live"       "live" (default): load from the CDN with bundled fallback.
                       "bundled": use only the bundled copy, no network request.
   ref="main"          git branch or release tag for live data (default: "main").
-                      Pin to a release tag, e.g. ref="v0.2.0", for instant, predictable updates.
+                      Pin to a release tag, e.g. ref="v0.3.0", for instant, predictable updates.
   height="760px"      container height (default 760px)
   title="..."         heading shown in the map (default: the dataset's label)
+
+Examples:
+  [rcvda_system_map lens="south-tees"]
+  [rcvda_system_map lens="redcar-cleveland" context="off"]
+  [rcvda_system_map lens="ceremonial-county-durham"]
 
 Register additional datasets (other public repos / paths) with the `rcvda_system_map_datasets`
 filter; set the default live ref globally with the `rcvda_system_map_ref` filter.
@@ -56,6 +68,12 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.3.0 =
+* Coded geography (ONS GSS codes) + switchable lenses: administrative (Tees Valley, Cleveland,
+  South Tees, North Tees, five boroughs) and ceremonial county (North Yorkshire, County Durham),
+  via a sidebar selector and the lens=/context= shortcode attributes. External partners shown as
+  connected context; MP constituencies moved to their own axis. Data widened to Tees Valley scope.
+
 = 0.2.0 =
 * Live data sourcing from the public GitHub repo via jsDelivr CDN, with automatic fallback to the
   bundled copy. New source= and ref= shortcode attributes; data= now also accepts a dataset slug.

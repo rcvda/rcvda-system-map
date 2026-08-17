@@ -10,10 +10,58 @@
   function nodeShape(d){ if(!d.org) return "ellipse"; if(d.subtype==="member") return "diamond"; if(d.subtype==="committee") return "round-hexagon"; if(d.subtype==="practice") return "ellipse"; if(d.subtype==="board") return "diamond"; return "round-rectangle";}
   function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
 
+  // --- Geography lenses -------------------------------------------------------
+  // A lens is a set of Tees Valley local-authority GSS codes. A node shows in a
+  // lens if its area overlaps that set (context on) or is fully within it
+  // (context off); regional/national and Tees-Valley-wide bodies are treated as
+  // covering all LAs; external partners appear when connected to a shown node.
+  var LA5=["E06000001","E06000002","E06000003","E06000004","E06000005"];
+  var GEXP={ "south-tees":["E06000002","E06000003"], "north-tees":["E06000001","E06000004"],
+             "cleveland":["E06000001","E06000002","E06000003","E06000004"], "E47000006":LA5 };
+  var COVER_ALL={"E12000001":1,"E92000001":1};
+  var LENS={ "tees-valley":LA5, "cleveland":["E06000001","E06000002","E06000003","E06000004"],
+             "south-tees":["E06000002","E06000003"], "north-tees":["E06000001","E06000004"],
+             "darlington":["E06000005"], "hartlepool":["E06000001"], "middlesbrough":["E06000002"],
+             "redcar-cleveland":["E06000003"], "stockton":["E06000004"],
+             "ceremonial-north-yorkshire":["E06000002","E06000003"],
+             "ceremonial-county-durham":["E06000001","E06000004","E06000005"] };
+  function areaSet(d){ var a=d.area; if(!a) return []; if(LA5.indexOf(a)>=0) return [a];
+    if(GEXP[a]) return GEXP[a]; if(COVER_ALL[a]) return LA5.slice(); return []; }
+  function lensAllowedSet(lensKey,contextOn,nodes,adj){
+    var L=LENS[lensKey]||LA5, Lset={}; L.forEach(function(c){Lset[c]=1;});
+    var allowed={};
+    nodes.forEach(function(n){ var d=n.data, A=areaSet(d), ok=false;
+      if(A.length){ ok=contextOn ? A.some(function(c){return Lset[c];})
+                                  : A.every(function(c){return Lset[c];}); }
+      if(ok) allowed[d.id]=1;
+    });
+    if(contextOn){ nodes.forEach(function(n){ var d=n.data; if(!d.external||allowed[d.id]) return;
+      var nb=adj[d.id]||[]; for(var i=0;i<nb.length;i++){ if(allowed[nb[i]]){ allowed[d.id]=1; break; } } }); }
+    return allowed;
+  }
+
   var UI = ''
    + '<div class="rsm-header"><h2></h2><span class="rsm-sub" style="color:var(--rsm-muted);font-size:12.5px">Network map — bodies, boards, roles &amp; relationships</span>'
    + '<div class="rsm-stats"><span><b class="rsm-n">0</b> shown</span><span><b class="rsm-t">0</b> top-level</span><span><b class="rsm-v">0</b> to verify</span></div></div>'
    + '<aside>'
+   + '<h3>Lens</h3><select class="rsm-field rsm-lens">'
+   +   '<optgroup label="Administrative">'
+   +     '<option value="tees-valley">Tees Valley (all five)</option>'
+   +     '<option value="cleveland">Cleveland (four boroughs)</option>'
+   +     '<option value="south-tees">South Tees</option>'
+   +     '<option value="north-tees">North Tees</option>'
+   +     '<option value="darlington">Darlington</option>'
+   +     '<option value="hartlepool">Hartlepool</option>'
+   +     '<option value="middlesbrough">Middlesbrough</option>'
+   +     '<option value="redcar-cleveland">Redcar &amp; Cleveland</option>'
+   +     '<option value="stockton">Stockton-on-Tees</option>'
+   +   '</optgroup>'
+   +   '<optgroup label="Ceremonial county">'
+   +     '<option value="ceremonial-north-yorkshire">North Yorkshire</option>'
+   +     '<option value="ceremonial-county-durham">County Durham</option>'
+   +   '</optgroup>'
+   + '</select>'
+   + '<label class="rsm-toggle"><input type="checkbox" class="rsm-context" checked> Show wider context</label>'
    + '<h3>Search</h3><input class="rsm-field rsm-search" placeholder="Find anything…" autocomplete="off" list="">'
    + '<datalist class="rsm-names"></datalist>'
    + '<h3>Organisations</h3><div class="rsm-orgbtns"></div><button class="rsm-btn rsm-collapseall">Collapse all</button>'
@@ -61,6 +109,19 @@
     container.innerHTML=UI;
     var q=function(s){return container.querySelector(s);};
     q('.rsm-header h2').textContent=title||'System map';
+
+    // lens: initial scope from the shortcode (data-lens / data-context), switchable in the sidebar
+    var lensKey=container.getAttribute('data-lens')||'tees-valley';
+    if(!LENS[lensKey]) lensKey='tees-valley';
+    var contextOn=(container.getAttribute('data-context')!=='off');
+    if(q('.rsm-lens')){ q('.rsm-lens').value=lensKey; }
+    if(q('.rsm-context')){ q('.rsm-context').checked=contextOn; }
+    var adj={}; data.edges.forEach(function(e){ var s=e.data.source,t=e.data.target;
+      (adj[s]=adj[s]||[]).push(t); (adj[t]=adj[t]||[]).push(s); });
+    var lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj);
+    function recomputeLens(){ lensKey=q('.rsm-lens')?q('.rsm-lens').value:lensKey;
+      contextOn=q('.rsm-context')?q('.rsm-context').checked:contextOn;
+      lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj); }
     var dlId='rsm-names-'+Math.random().toString(36).slice(2);
     q('.rsm-search').setAttribute('list',dlId); q('.rsm-names').id=dlId;
 
@@ -87,10 +148,10 @@
     function chosen(){var v=q('.rsm-layout').value; if(v==='fcose'&&!(window.cytoscapeFcose||window['cytoscape-fcose'])) v='cose'; return layouts[v]?layouts[v]():layouts.cose();}
     function relayout(){ cy.elements(':visible').layout(chosen()).run(); }
 
-    function nodeVisible(n){var d=n.data(); if(d.org){ if(!expanded[d.org]) return false; } else { if(hiddenTypes[d.type]) return false; } var t=q('.rsm-tier').value; if(t&&d.tier!==t) return false; var g=q('.rsm-domain').value; if(g&&d.group!==g) return false; return true; }
+    function nodeVisible(n){var d=n.data(); if(!lensAllowed[d.id]) return false; if(d.org){ if(!expanded[d.org]) return false; } else { if(hiddenTypes[d.type]) return false; } var t=q('.rsm-tier').value; if(t&&d.tier!==t) return false; var g=q('.rsm-domain').value; if(g&&d.group!==g) return false; return true; }
     function sizeByDegree(on){ cy.nodes().forEach(function(n){ if(n.isParent()){return;} if(n.data('org')){ n.style({'width':20,'height':20,'font-size':7.5}); return; } var dg=n.connectedEdges(':visible').length; var s=on?16+dg*3.5:22; n.style({'width':s,'height':s,'font-size':Math.min(12,8+dg*0.4)}); }); }
     function apply(){ cy.batch(function(){ cy.nodes().forEach(function(n){ n.style('display',nodeVisible(n)?'element':'none'); }); cy.edges().forEach(function(e){ var v=e.source().style('display')==='element'&&e.target().style('display')==='element'; e.style('display',v?'element':'none'); }); }); sizeByDegree(q('.rsm-sizedeg').checked); stats(); orgBtns(); }
-    function stats(){ q('.rsm-n').textContent=cy.nodes(':visible').length; q('.rsm-t').textContent=data.nodes.filter(function(n){return !n.data.org;}).length; q('.rsm-v').textContent=data.nodes.filter(function(n){return n.data.status==='verify';}).length; }
+    function stats(){ q('.rsm-n').textContent=cy.nodes(':visible').length; q('.rsm-t').textContent=data.nodes.filter(function(n){return !n.data.org && lensAllowed[n.data.id];}).length; q('.rsm-v').textContent=data.nodes.filter(function(n){return n.data.status==='verify' && lensAllowed[n.data.id];}).length; }
 
     function toggleOrg(o){ expanded[o]=!expanded[o]; apply(); relayout(); }
     cy.on('tap','node',function(ev){ var n=ev.target,d=n.data(); if(!d.org&&orgSet.indexOf(d.id)>=0){ toggleOrg(d.id);} selectNode(n); });
@@ -104,7 +165,10 @@
       if(d.person) h+='<div class="rsm-person">'+esc(d.person)+'</div>';
       if(d.portfolio) h+='<div class="rsm-meta">Portfolio: '+esc(d.portfolio)+'</div>';
       if(d.org) h+='<div class="rsm-meta">Part of: '+esc(d.org)+'</div>';
-      if(d.geography) h+='<div class="rsm-meta">'+esc(d.geography)+(d.tier?' · '+esc(d.tier)+' tier':'')+'</div>';
+      if(d.area_label) h+='<div class="rsm-meta">Area: '+esc(d.area_label)+(d.ceremonial?' · '+esc(d.ceremonial.replace(/-/g,' '))+' (ceremonial)':'')+'</div>';
+      else if(d.geography) h+='<div class="rsm-meta">'+esc(d.geography)+(d.tier?' · '+esc(d.tier)+' tier':'')+'</div>';
+      if(d.constituency) h+='<div class="rsm-meta">Constituency: '+esc(d.constituency)+'</div>';
+      if(d.external) h+='<div class="rsm-meta">External partner (outside Tees Valley)</div>';
       if(d.description) h+='<div class="rsm-desc">'+esc(d.description)+'</div>';
       if(d.status==='verify') h+='<div class="rsm-vf">⚠ Flagged to verify</div>';
       if(d.source) h+='<div class="rsm-src"><a href="'+esc(d.source)+'" target="_blank" rel="noopener">Source ↗</a></div>';
@@ -147,6 +211,8 @@
     q('.rsm-collapseall').onclick=function(){ expanded={}; apply(); relayout(); };
     q('.rsm-tier').onchange=function(){ apply(); relayout(); };
     q('.rsm-domain').onchange=function(){ apply(); relayout(); };
+    if(q('.rsm-lens')) q('.rsm-lens').onchange=function(){ recomputeLens(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
+    if(q('.rsm-context')) q('.rsm-context').onchange=function(){ recomputeLens(); apply(); relayout(); };
     q('.rsm-layout').onchange=relayout;
     q('.rsm-sizedeg').onchange=function(e){ sizeByDegree(e.target.checked); };
     q('.rsm-fit').onclick=function(){ cy.fit(cy.elements(':visible'),40); };
