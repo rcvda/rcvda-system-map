@@ -23847,7 +23847,11 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__140__;
              "darlington":["E06000005"], "hartlepool":["E06000001"], "middlesbrough":["E06000002"],
              "redcar-cleveland":["E06000003"], "stockton":["E06000004"],
              "ceremonial-north-yorkshire":["E06000002","E06000003"],
-             "ceremonial-county-durham":["E06000001","E06000004","E06000005"] };
+             "ceremonial-county-durham":["E06000001","E06000004","E06000005"],
+             // Westminster constituencies → the borough(s) they cover (borough-resolution)
+             "constituency-redcar":["E06000003"],                                  // PCON E14001440
+             "constituency-middlesbrough-south-east-cleveland":["E06000002","E06000003"],
+             "constituency-middlesbrough-thornaby-east":["E06000002","E06000004"] };
   function areaSet(d){ var a=d.area; if(!a) return []; if(LA5.indexOf(a)>=0) return [a];
     if(GEXP[a]) return GEXP[a]; if(COVER_ALL[a]) return LA5.slice(); return []; }
   function lensAllowedSet(lensKey,contextOn,nodes,adj){
@@ -23882,6 +23886,11 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__140__;
    +   '<optgroup label="Ceremonial county">'
    +     '<option value="ceremonial-north-yorkshire">North Yorkshire</option>'
    +     '<option value="ceremonial-county-durham">County Durham</option>'
+   +   '</optgroup>'
+   +   '<optgroup label="Constituency">'
+   +     '<option value="constituency-redcar">Redcar</option>'
+   +     '<option value="constituency-middlesbrough-south-east-cleveland">Middlesbrough South &amp; East Cleveland</option>'
+   +     '<option value="constituency-middlesbrough-thornaby-east">Middlesbrough &amp; Thornaby East</option>'
    +   '</optgroup>'
    + '</select>'
    + '<label class="rsm-toggle"><input type="checkbox" class="rsm-context" checked> Show wider context</label>'

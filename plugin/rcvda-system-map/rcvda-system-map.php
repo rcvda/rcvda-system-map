@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       RCVDA System Map
- * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties). Ships loaded with the South Tees / Tees Valley public system dataset.
- * Version:           0.3.0
+ * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties, constituencies). Ships loaded with the South Tees / Tees Valley public system dataset.
+ * Version:           0.4.0
  * Author:            RCVDA
  * License:           GPL-2.0-or-later
  * Text Domain:       rcvda-system-map
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'RCVDA_SYSTEM_MAP_VER', '0.3.0' );
+define( 'RCVDA_SYSTEM_MAP_VER', '0.4.0' );
 define( 'RCVDA_SYSTEM_MAP_URL', plugin_dir_url( __FILE__ ) );
 define( 'RCVDA_SYSTEM_MAP_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -101,6 +101,8 @@ add_action( 'init', 'rcvda_system_map_register_assets' );
  *           Administrative: tees-valley (default), cleveland, south-tees, north-tees,
  *           darlington, hartlepool, middlesbrough, redcar-cleveland, stockton.
  *           Ceremonial county: ceremonial-north-yorkshire, ceremonial-county-durham.
+ *           Constituency: constituency-redcar, constituency-middlesbrough-south-east-cleveland,
+ *           constituency-middlesbrough-thornaby-east (resolve to the borough(s) they cover).
  * context — "on" (default): also show the wider bodies a lens plugs into (regional/
  *           national and connected external partners). "off": show only bodies native
  *           to the lens area.

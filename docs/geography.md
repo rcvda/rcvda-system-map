@@ -79,7 +79,23 @@ Fund, NHS England, etc. stay national even where their `area` is a local patch �
 on the map, `tier` records their institutional level). Distribution: local 290, sub-regional 89,
 regional 9, national 11.
 
+## Constituency lenses
+
+Westminster constituencies are a separate axis (`constituency` field on MP nodes, PCON `E14…` codes).
+They don't nest in boroughs, so a constituency lens resolves to the **borough(s) the constituency
+covers** — borough-resolution, not ward-level — and then filters exactly like any other lens. Covers
+the constituencies currently in the dataset:
+
+| Lens slug | Constituency (PCON) | Borough set |
+|---|---|---|
+| `constituency-redcar` | Redcar (E14001440) | Redcar and Cleveland |
+| `constituency-middlesbrough-south-east-cleveland` | Middlesbrough South and East Cleveland | Middlesbrough + R&C |
+| `constituency-middlesbrough-thornaby-east` | Middlesbrough and Thornaby East | Middlesbrough + Stockton |
+
+Add more as MP nodes are added — one line in the plugin's `LENS` map (borough set) plus a dropdown
+option. (The two Middlesbrough PCON codes are 2024-boundary constituencies; lock their exact `E14…`
+codes against ONS when convenient — the lens works from the borough set regardless.)
+
 ## Notes / to-do
 
-- Constituencies currently sit only as a `constituency` field; a constituency lens (PCON `E14…`
-  codes) is a clean future add on the same machinery.
+- Constituency lenses are borough-resolution; true ward-level scoping would need ward data per node.

@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -37,7 +37,9 @@ Optional attributes:
   lens="tees-valley"  geography lens the map opens on (switchable in the sidebar):
                       tees-valley (default), cleveland, south-tees, north-tees, darlington,
                       hartlepool, middlesbrough, redcar-cleveland, stockton,
-                      ceremonial-north-yorkshire, ceremonial-county-durham
+                      ceremonial-north-yorkshire, ceremonial-county-durham,
+                      constituency-redcar, constituency-middlesbrough-south-east-cleveland,
+                      constituency-middlesbrough-thornaby-east
   context="on"        "on" (default) also shows the wider bodies a lens plugs into
                       (regional/national + connected external partners); "off" shows only
                       bodies native to the lens area
@@ -68,6 +70,12 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.4.0 =
+* Added Constituency lenses (Westminster) alongside the administrative and ceremonial ones —
+  each resolves to the borough(s) it covers. Covers the constituencies currently in the dataset
+  (Redcar, Middlesbrough South & East Cleveland, Middlesbrough & Thornaby East); extend as more
+  MP nodes are added.
+
 = 0.3.0 =
 * Coded geography (ONS GSS codes) + switchable lenses: administrative (Tees Valley, Cleveland,
   South Tees, North Tees, five boroughs) and ceremonial county (North Yorkshire, County Durham),
