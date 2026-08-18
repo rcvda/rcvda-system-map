@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.5.0
+Stable tag: 0.6.0
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -70,6 +70,12 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.6.0 =
+* Promoted people to a first-class registry (people[]) keyed on Democracy Club person IDs. Role nodes
+  reference a person via person_ref and carry their own appointment source + date; elected members
+  carry a separate, independently-sourced electoral mandate (uk-election-ids). The detail panel shows
+  person, mandate (for elected members) and appointment provenance separately.
+
 = 0.5.0 =
 * Data split into its own repo (rcvda/tees-valley-system-map). The plugin now loads the "tees-valley"
   dataset live from there via jsDelivr, with the bundled copy as fallback. data="south-tees" kept as

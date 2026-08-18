@@ -128,6 +128,7 @@
     var adj={}; data.edges.forEach(function(e){ var s=e.data.source,t=e.data.target;
       (adj[s]=adj[s]||[]).push(t); (adj[t]=adj[t]||[]).push(s); });
     var lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj);
+    var peopleById={}; (data.people||[]).forEach(function(p){ peopleById[p.id]=p; });
     function recomputeLens(){ lensKey=q('.rsm-lens')?q('.rsm-lens').value:lensKey;
       contextOn=q('.rsm-context')?q('.rsm-context').checked:contextOn;
       lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj); }
@@ -171,7 +172,18 @@
     function relList(n,kind){ var out=[]; n.connectedEdges().forEach(function(ed){ if(ed.data('kind')!==kind) return; if(ed.source().style('display')!=='element'||ed.target().style('display')!=='element') return; var outgoing=ed.source().id()===n.id(); var other=outgoing?ed.target():ed.source(); out.push(outgoing?'<div class="rsm-rel"><span class="rsm-v">'+esc(ed.data('label'))+'</span> → '+esc(other.data('label'))+'</div>':'<div class="rsm-rel">'+esc(other.data('label'))+' <span class="rsm-v">'+esc(ed.data('label'))+'</span> → this</div>'); }); return out.join(''); }
     function showDetail(n){ var d=n.data(),col=nodeColor(d); var kn=d.org?(d.subtype==='officer'?'Officer':d.subtype==='member'?'Cabinet member':d.subtype==='practice'?'GP practice':d.subtype==='board'?'Non-executive / board':'Committee'):d.type;
       var h='<button class="rsm-cx" aria-label="Close">×</button><span class="rsm-tag" style="background:'+col+'">'+esc(kn)+'</span><h4>'+esc(d.label)+'</h4>';
-      if(d.person) h+='<div class="rsm-person">'+esc(d.person)+'</div>';
+      var per=d.person_ref?peopleById[d.person_ref]:null;
+      var pname=(per&&per.name)||d.person;
+      if(pname){
+        h+='<div class="rsm-person">'+esc(pname)+(per&&per.kind==='elected'?' · elected':'')+'</div>';
+        if(per&&per.mandate){ var m=per.mandate; var bits=[];
+          if(m.office) bits.push(esc(m.office));
+          if(m.term) bits.push('term '+esc(m.term));
+          var ml='Mandate: '+(bits.join(' · ')||'elected member');
+          if(m.source) ml+=' <a href="'+esc(m.source)+'" target="_blank" rel="noopener">source ↗</a>';
+          h+='<div class="rsm-meta">'+ml+'</div>';
+        }
+      }
       if(d.portfolio) h+='<div class="rsm-meta">Portfolio: '+esc(d.portfolio)+'</div>';
       if(d.org) h+='<div class="rsm-meta">Part of: '+esc(d.org)+'</div>';
       if(d.area_label) h+='<div class="rsm-meta">Area: '+esc(d.area_label)+(d.ceremonial?' · '+esc(d.ceremonial.replace(/-/g,' '))+' (ceremonial)':'')+'</div>';
@@ -180,6 +192,7 @@
       if(d.external) h+='<div class="rsm-meta">External partner (outside Tees Valley)</div>';
       if(d.description) h+='<div class="rsm-desc">'+esc(d.description)+'</div>';
       if(d.status==='verify') h+='<div class="rsm-vf">⚠ Flagged to verify</div>';
+      if(d.appointed&&d.appointed.source) h+='<div class="rsm-src">Appointment'+(d.appointed.as_of?' (as of '+esc(d.appointed.as_of)+')':'')+': <a href="'+esc(d.appointed.source)+'" target="_blank" rel="noopener">source ↗</a></div>';
       if(d.source) h+='<div class="rsm-src"><a href="'+esc(d.source)+'" target="_blank" rel="noopener">Source ↗</a></div>';
       var RK=[['political','Political / portfolio oversight'],['governance','Governance & accountability'],['officer','Line management'],['commissioning','Commissioning'],['funding','Funding'],['membership','Membership & representation'],['delivery','Partnership & delivery']];
       var any=false; RK.forEach(function(rk){var r=relList(n,rk[0]); if(r){any=true; h+='<h5 class="rsm-h5">'+rk[1]+'</h5>'+r;}});
