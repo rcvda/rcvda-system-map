@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -59,10 +59,10 @@ Register additional datasets (other public repos / paths) with the `rcvda_system
 filter; set the default live ref globally with the `rcvda_system_map_ref` filter.
 
 == Updating the data ==
-Live model: edit data/system-data.json in the repo, run build.sh, commit and push. The site
-picks up the change after the CDN cache expires (~12h on a branch) or immediately if you bump the
-release tag referenced by `ref`. The bundled copy is refreshed by build.sh so the fallback also
-stays current in each shipped plugin build.
+The data lives in its own repo, rcvda/tees-valley-system-map. Edit data/system-data.json there,
+commit and push; the site picks up the change after the CDN cache expires (~12h on a branch) or
+immediately if you bump the release tag referenced by `ref`. In this tool repo, build.sh refreshes
+the plugin's bundled fallback from the data repo (sibling checkout if present, else fetch).
 
 == Roadmap ==
 A future version can source data from WordPress custom post types (organisation / place /
@@ -70,6 +70,11 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.5.0 =
+* Data split into its own repo (rcvda/tees-valley-system-map). The plugin now loads the "tees-valley"
+  dataset live from there via jsDelivr, with the bundled copy as fallback. data="south-tees" kept as
+  a back-compat alias for the same dataset (use lens="south-tees" to scope the view).
+
 = 0.4.0 =
 * Added Constituency lenses (Westminster) alongside the administrative and ceremonial ones —
   each resolves to the borough(s) it covers. Covers the constituencies currently in the dataset

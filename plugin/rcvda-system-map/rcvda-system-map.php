@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       RCVDA System Map
- * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties, constituencies). Ships loaded with the South Tees / Tees Valley public system dataset.
- * Version:           0.4.0
+ * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub data repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties, constituencies). Data lives in rcvda/tees-valley-system-map.
+ * Version:           0.5.0
  * Author:            RCVDA
  * License:           GPL-2.0-or-later
  * Text Domain:       rcvda-system-map
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'RCVDA_SYSTEM_MAP_VER', '0.4.0' );
+define( 'RCVDA_SYSTEM_MAP_VER', '0.5.0' );
 define( 'RCVDA_SYSTEM_MAP_URL', plugin_dir_url( __FILE__ ) );
 define( 'RCVDA_SYSTEM_MAP_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -36,12 +36,15 @@ function rcvda_system_map_default_ref() {
  */
 function rcvda_system_map_datasets() {
 	$datasets = array(
-		'south-tees' => array(
-			'repo'  => 'rcvda/rcvda-system-map',
+		'tees-valley' => array(
+			'repo'  => 'rcvda/tees-valley-system-map',
 			'path'  => 'data/system-data.json',
-			'label' => 'South Tees Public System',
+			'label' => 'Tees Valley Public System',
 		),
 	);
+	// Back-compat alias: existing pages using data="south-tees" keep working (same dataset;
+	// use the lens="south-tees" attribute to scope the view to South Tees).
+	$datasets['south-tees'] = $datasets['tees-valley'];
 	return apply_filters( 'rcvda_system_map_datasets', $datasets );
 }
 
@@ -119,7 +122,7 @@ function rcvda_system_map_shortcode( $atts ) {
 		array(
 			'height'  => '760px',
 			'title'   => '',
-			'data'    => 'south-tees',
+			'data'    => 'tees-valley',
 			'lens'    => 'tees-valley',
 			'context' => 'on',
 			'source'  => 'live',
