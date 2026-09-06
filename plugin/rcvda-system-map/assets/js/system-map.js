@@ -4,10 +4,10 @@
   try{ var F=window.cytoscapeFcose||window['cytoscape-fcose']; if(window.cytoscape&&F&&!window.__rcvdaFcose){window.cytoscape.use(F);window.__rcvdaFcose=1;} }catch(e){}
 
   var COLT={"Statutory body":"#1f4e79","NHS body":"#0b7285","Emergency service":"#c92a2a","Partnership / board":"#6741d9","VCSE org":"#2f9e44","Education":"#e8590c","Funder":"#f08c00","Programme / evidence":"#495057","Role / post":"#a61e4d","Representative body":"#7048e8","Geography (LA)":"#868e96","Council internal":"#868e96"};
-  var COLS={"officer":"#495057","member":"#a61e4d","committee":"#6741d9","practice":"#3bc9db","board":"#f59f00"};
+  var COLS={"officer":"#495057","member":"#a61e4d","committee":"#6741d9","practice":"#3bc9db","board":"#f59f00","pharmacy":"#12b886","pharmacy owner":"#0b7a5c"};
   var KIND={"governance":"#212529","officer":"#1c7ed6","political":"#e64980","commissioning":"#0ca678","funding":"#f08c00","membership":"#adb5bd","delivery":"#7048e8"};
-  function nodeColor(d){return d.org?(COLS[d.subtype]||"#868e96"):(COLT[d.type]||"#888");}
-  function nodeShape(d){ if(!d.org) return "ellipse"; if(d.subtype==="member") return "diamond"; if(d.subtype==="committee") return "round-hexagon"; if(d.subtype==="practice") return "ellipse"; if(d.subtype==="board") return "diamond"; return "round-rectangle";}
+  function nodeColor(d){if(d.subtype==="pharmacy"||d.subtype==="pharmacy owner")return COLS[d.subtype];return d.org?(COLS[d.subtype]||"#868e96"):(COLT[d.type]||"#888");}
+  function nodeShape(d){ if(d.subtype==="pharmacy") return "ellipse"; if(d.subtype==="pharmacy owner") return "round-rectangle"; if(!d.org) return "ellipse"; if(d.subtype==="member") return "diamond"; if(d.subtype==="committee") return "round-hexagon"; if(d.subtype==="practice") return "ellipse"; if(d.subtype==="board") return "diamond"; return "round-rectangle";}
   function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
 
   // --- Geography lenses -------------------------------------------------------
@@ -79,6 +79,8 @@
    + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#a61e4d;border-radius:50%"></span>Cabinet member (internal)</div>'
    + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#f59f00"></span>Non-exec / board</div>'
    + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#3bc9db;border-radius:50%"></span>GP practice</div>'
+   + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#12b886;border-radius:50%"></span>Community pharmacy</div>'
+   + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#0b7a5c"></span>Pharmacy owner</div>'
    + '<h3>Relationship type</h3>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#212529"></span>Governance &amp; accountability</div>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#1c7ed6"></span>Line management</div>'
@@ -207,7 +209,7 @@
     var doms={}; data.nodes.forEach(function(n){if(n.data.group)doms[n.data.group]=(doms[n.data.group]||0)+1;});
     Object.keys(doms).sort().forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g+' ('+doms[g]+')';q('.rsm-domain').appendChild(o);});
     // legend
-    var counts={}; data.nodes.forEach(function(n){if(!n.data.org)counts[n.data.type]=(counts[n.data.type]||0)+1;});
+    var counts={}; data.nodes.forEach(function(n){if(!n.data.org&&n.data.subtype!=='pharmacy owner')counts[n.data.type]=(counts[n.data.type]||0)+1;});
     var legend=q('.rsm-legend');
     Object.keys(COLT).forEach(function(t){ if(!counts[t])return; var el=document.createElement('div'); el.className='rsm-li'; el.innerHTML='<span class="rsm-sw" style="background:'+COLT[t]+'"></span>'+esc(t)+'<span class="rsm-ct">'+counts[t]+'</span>'; el.onclick=function(){ if(hiddenTypes[t]){delete hiddenTypes[t];el.classList.remove('rsm-off');}else{hiddenTypes[t]=1;el.classList.add('rsm-off');} apply(); }; legend.appendChild(el); });
     // org buttons
