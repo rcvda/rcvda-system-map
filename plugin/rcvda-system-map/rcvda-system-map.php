@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'RCVDA_SYSTEM_MAP_VER', '0.6.0' );
+define( 'RCVDA_SYSTEM_MAP_VER', '0.6.1' );
 define( 'RCVDA_SYSTEM_MAP_URL', plugin_dir_url( __FILE__ ) );
 define( 'RCVDA_SYSTEM_MAP_DIR', plugin_dir_path( __FILE__ ) );
 
