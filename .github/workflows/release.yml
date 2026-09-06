@@ -1,0 +1,28 @@
+name: Release plugin
+
+# Tag a version (e.g. `git tag v0.6.3 && git push origin v0.6.3`) to build the plugin
+# zip and publish a GitHub release with it attached. Git Updater (Release Asset mode,
+# declared in the plugin header) then offers the update to any WordPress site running
+# this plugin.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+      - name: Build plugin zip (refreshes bundled data, repackages)
+        run: ./build/build.sh
+      - name: Publish release with plugin asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/rcvda-system-map.zip --title "${GITHUB_REF_NAME}" --generate-notes

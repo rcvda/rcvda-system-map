@@ -2,15 +2,18 @@
 /**
  * Plugin Name:       RCVDA System Map
  * Description:       Reusable interactive network-map tool for RCVDA. Renders a Cytoscape.js graph via the [rcvda_system_map] shortcode — live from a public GitHub data repo (jsDelivr CDN) with automatic fallback to a bundled copy, or fully self-contained. Coded geography with switchable lenses (Tees Valley, South Tees, boroughs, ceremonial counties, constituencies). Data lives in rcvda/tees-valley-system-map.
- * Version:           0.6.1
+ * Version:           0.6.2
  * Author:            RCVDA
  * License:           GPL-2.0-or-later
  * Text Domain:       rcvda-system-map
+ * Update URI:        https://github.com/rcvda/rcvda-system-map
+ * Primary Branch:    main
+ * Release Asset:     true
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'RCVDA_SYSTEM_MAP_VER', '0.6.1' );
+define( 'RCVDA_SYSTEM_MAP_VER', '0.6.2' );
 define( 'RCVDA_SYSTEM_MAP_URL', plugin_dir_url( __FILE__ ) );
 define( 'RCVDA_SYSTEM_MAP_DIR', plugin_dir_path( __FILE__ ) );
 

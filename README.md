@@ -78,8 +78,25 @@ Common attributes: `lens="south-tees"`, `context="off"`, `data="tees-valley"`,
 ## Updating the map
 
 Edit the data in the **data repo** (`rcvda/tees-valley-system-map`) and push — the live site picks it
-up from the CDN. Ship a new plugin build/release from this repo only when the **code** changes (run
-`./build/build.sh`, commit, tag, and attach `dist/rcvda-system-map.zip` to the release).
+up from the CDN. Ship a new plugin **build/release** only when the **code** changes.
+
+### Releasing plugin code (Git Updater)
+
+The plugin declares Git Updater headers (`Update URI` / `Primary Branch` / `Release Asset`), so
+WordPress sites running the [Git Updater](https://git-updater.com/) plugin update themselves from
+this repo's GitHub **releases** — no manual re-upload. To cut a release:
+
+1. Bump the version in **three** places (they must match): the `Version:` header and the
+   `RCVDA_SYSTEM_MAP_VER` define in `rcvda-system-map.php`, and `Stable tag:` in `readme.txt`.
+2. Commit, then tag and push the tag: `git tag v0.6.3 && git push origin v0.6.3`.
+3. The `.github/workflows/release.yml` action runs `build/build.sh`, then publishes a GitHub
+   release with `dist/rcvda-system-map.zip` attached. Git Updater installs from that asset.
+
+**One-time WordPress setup:** install the Git Updater plugin, then upload this repo's current
+build once by hand (so the *installed* plugin carries the Git Updater headers); from then on
+updates flow automatically. If this repo is **private**, add a GitHub token in Git Updater's
+settings. You can still build and upload `dist/rcvda-system-map.zip` manually (`./build/build.sh`)
+on sites without Git Updater.
 
 ## Roadmap
 
