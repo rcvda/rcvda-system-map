@@ -82,6 +82,14 @@
    + '<h3>Search</h3><input class="rsm-field rsm-search" placeholder="Find anything…" autocomplete="off" list="">'
    + '<datalist class="rsm-names"></datalist>'
    + '<h3>Organisations</h3><div class="rsm-orgbtns"></div><button class="rsm-btn rsm-collapseall">Collapse all</button>'
+   + '<h3>Filter</h3>'
+   + '<select class="rsm-field rsm-domain"><option value="">All system domains</option></select>'
+   + '<select class="rsm-field rsm-tier"><option value="">All geography tiers</option></select>'
+   + '<select class="rsm-field rsm-party"><option value="">All parties</option></select>'
+   + '<h3>Colour nodes by</h3>'
+   + '<select class="rsm-field rsm-colourby"><option value="type">Node type (default)</option><option value="party">Political party</option><option value="borough">Tees Valley borough</option></select>'
+   + '<div class="rsm-boroughkey" hidden></div>'
+   + '<div class="rsm-partykey" hidden></div>'
    + '<h3>Node types</h3><div class="rsm-legend"></div>'
    + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#495057"></span>Officer (internal)</div>'
    + '<div class="rsm-li" style="cursor:default"><span class="rsm-sw" style="background:#a61e4d;border-radius:50%"></span>Cabinet member (internal)</div>'
@@ -99,13 +107,6 @@
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#7048e8;border-top-style:dashed"></span>Partnership &amp; delivery</div>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#868e96"></span>Party — sits as (current)</div>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#868e96;border-top-style:dashed"></span>Party — formerly (past)</div>'
-   + '<h3>Colour nodes by</h3><select class="rsm-field rsm-colourby"><option value="type">Node type (default)</option><option value="party">Political party</option><option value="borough">Tees Valley borough</option></select>'
-   + '<div class="rsm-boroughkey" hidden></div>'
-   + '<h3>Political party</h3>'
-   + '<select class="rsm-field rsm-party"><option value="">All parties</option></select>'
-   + '<div class="rsm-partykey"></div>'
-   + '<h3>System domain</h3><select class="rsm-field rsm-domain"><option value="">All domains</option></select>'
-   + '<h3>Geography tier</h3><select class="rsm-field rsm-tier"><option value="">All tiers</option></select>'
    + '<h3>Layout</h3><select class="rsm-field rsm-layout"><option value="fcose">Tidy (fcose)</option><option value="cose">Force</option><option value="concentric">Concentric</option><option value="breadthfirst">Hierarchy</option></select>'
    + '<label class="rsm-toggle"><input type="checkbox" class="rsm-sizedeg" checked> Size by connections</label>'
    + '<button class="rsm-btn rsm-fit">Fit to screen</button><button class="rsm-btn rsm-reset">Reset</button>'
@@ -266,14 +267,14 @@
     q('.rsm-collapseall').onclick=function(){ expanded={}; apply(); relayout(); };
     q('.rsm-tier').onchange=function(){ apply(); relayout(); };
     q('.rsm-domain').onchange=function(){ apply(); relayout(); };
-    if(q('.rsm-colourby')) q('.rsm-colourby').onchange=function(e){ colourMode=e.target.value; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=(colourMode!=='borough'); reColour(); };
+    if(q('.rsm-colourby')) q('.rsm-colourby').onchange=function(e){ colourMode=e.target.value; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=(colourMode!=='borough'); if(q('.rsm-partykey'))q('.rsm-partykey').hidden=(colourMode!=='party'); reColour(); };
     if(q('.rsm-party')) q('.rsm-party').onchange=function(){ apply(); relayout(); };
     if(q('.rsm-lens')) q('.rsm-lens').onchange=function(){ recomputeLens(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
     if(q('.rsm-context')) q('.rsm-context').onchange=function(){ recomputeLens(); apply(); relayout(); };
     q('.rsm-layout').onchange=relayout;
     q('.rsm-sizedeg').onchange=function(e){ sizeByDegree(e.target.checked); };
     q('.rsm-fit').onclick=function(){ cy.fit(cy.elements(':visible'),40); };
-    q('.rsm-reset').onclick=function(){ expanded={}; hiddenTypes={}; q('.rsm-tier').value=''; q('.rsm-domain').value=''; if(q('.rsm-party'))q('.rsm-party').value=''; if(q('.rsm-colourby'))q('.rsm-colourby').value='type'; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=true; colourMode='type'; container.querySelectorAll('.rsm-legend .rsm-li').forEach(function(e){e.classList.remove('rsm-off');}); clearSel(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
+    q('.rsm-reset').onclick=function(){ expanded={}; hiddenTypes={}; q('.rsm-tier').value=''; q('.rsm-domain').value=''; if(q('.rsm-party'))q('.rsm-party').value=''; if(q('.rsm-colourby'))q('.rsm-colourby').value='type'; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=true; if(q('.rsm-partykey'))q('.rsm-partykey').hidden=true; colourMode='type'; container.querySelectorAll('.rsm-legend .rsm-li').forEach(function(e){e.classList.remove('rsm-off');}); clearSel(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
     // search datalist
     var dl=q('.rsm-names'); data.nodes.forEach(function(n){var o=document.createElement('option');o.value=n.data.label;dl.appendChild(o);});
     q('.rsm-search').addEventListener('change',function(e){ var m=null; for(var i=0;i<data.nodes.length;i++){if(data.nodes[i].data.label===e.target.value){m=data.nodes[i];break;}} if(!m)return; if(m.data.org&&!expanded[m.data.org]){expanded[m.data.org]=1;apply();relayout();} var n=cy.getElementById(m.data.id); setTimeout(function(){cy.animate({center:{eles:n},zoom:1.3},{duration:400});selectNode(n);},m.data.org?650:0); });

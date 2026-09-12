@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -70,6 +70,12 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.7.2 =
+* Sidebar reorganised into clear sections as the map has grown: Lens, Search, Organisations, Filter
+  (system domain + geography tier + political party together), Colour nodes by (with the borough/party
+  key shown only for the matching mode), Node types, Relationship type, Layout. No functional change —
+  the controls are the same, just grouped logically.
+
 = 0.7.1 =
 * "Colour nodes by" now offers Tees Valley borough, using the fixed RCVDA borough colour standard
   (Darlington raspberry, Hartlepool green, Middlesbrough orange, Redcar & Cleveland teal, Stockton
