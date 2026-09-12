@@ -2,7 +2,7 @@
 Contributors: RCVDA
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 0.6.2
+Stable tag: 0.7.1
 License: GPLv2 or later
 
 Reusable interactive network-map tool for RCVDA. Ships loaded with the South Tees public system dataset.
@@ -70,6 +70,20 @@ service / facility) with a REST feed, per the project's Self-Hosted Spec, making
 live datastore without changing the front end.
 
 == Changelog ==
+= 0.7.1 =
+* "Colour nodes by" now offers Tees Valley borough, using the fixed RCVDA borough colour standard
+  (Darlington raspberry, Hartlepool green, Middlesbrough orange, Redcar & Cleveland teal, Stockton
+  blue, Tees Valley / combined navy, North East rust — see _Standards_Org/DESIGN.md). Adds a borough
+  colour key. The party colour toggle is now part of the same "Colour nodes by" selector (Type / Party
+  / Borough).
+
+= 0.7.0 =
+* Political parties are now first-class. The dataset carries a node per party and a "sits as" line from
+  each political seat to its holder's current party, plus a dashed "formerly" line where someone has
+  moved party (e.g. a defection). New viewer features: a "Colour nodes by party" toggle (tints every
+  political node by current party), a Party filter, a party colour key, and "Party affiliation" in the
+  detail panel. Party lines are coloured by party and dashed for former affiliations.
+
 = 0.6.0 =
 * Promoted people to a first-class registry (people[]) keyed on Democracy Club person IDs. Role nodes
   reference a person via person_ref and carry their own appointment source + date; elected members

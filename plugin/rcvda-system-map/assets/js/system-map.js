@@ -5,9 +5,17 @@
 
   var COLT={"Statutory body":"#1f4e79","NHS body":"#0b7285","Emergency service":"#c92a2a","Partnership / board":"#6741d9","VCSE org":"#2f9e44","Education":"#e8590c","Funder":"#f08c00","Programme / evidence":"#495057","Role / post":"#a61e4d","Representative body":"#7048e8","Geography (LA)":"#868e96","Council internal":"#868e96"};
   var COLS={"officer":"#495057","member":"#a61e4d","committee":"#6741d9","practice":"#3bc9db","board":"#f59f00","pharmacy":"#12b886","pharmacy owner":"#0b7a5c"};
-  var KIND={"governance":"#212529","officer":"#1c7ed6","political":"#e64980","commissioning":"#0ca678","funding":"#f08c00","membership":"#adb5bd","delivery":"#7048e8"};
-  function nodeColor(d){if(d.subtype==="pharmacy"||d.subtype==="pharmacy owner")return COLS[d.subtype];return d.org?(COLS[d.subtype]||"#868e96"):(COLT[d.type]||"#888");}
-  function nodeShape(d){ if(d.subtype==="pharmacy") return "ellipse"; if(d.subtype==="pharmacy owner") return "round-rectangle"; if(!d.org) return "ellipse"; if(d.subtype==="member") return "diamond"; if(d.subtype==="committee") return "round-hexagon"; if(d.subtype==="practice") return "ellipse"; if(d.subtype==="board") return "diamond"; return "round-rectangle";}
+  var KIND={"governance":"#212529","officer":"#1c7ed6","political":"#e64980","commissioning":"#0ca678","funding":"#f08c00","membership":"#adb5bd","delivery":"#7048e8","party":"#868e96"};
+  // Political-party colours (by party name = party-node id)
+  var PARTYC={"Labour Party":"#E4003B","Labour and Co-operative Party":"#E4003B","Reform UK":"#12B6CF","Conservative and Unionist Party":"#0087DC","Liberal Democrats":"#FAA61A","Green Party":"#02A95B","Independent":"#868e96","Independent Union":"#868e96"};
+  // Tees Valley borough colours — the fixed RCVDA standard (see _Standards_Org/DESIGN.md).
+  // Keyed by ONS GSS code and by the multi-borough grouping slugs used in the data.
+  var BOROUGHC={"E06000001":"#248000","E06000002":"#EF8A00","E06000003":"#217887","E06000004":"#1D8AD7","E06000005":"#900030",
+                "E47000006":"#2A3B72","south-tees":"#2A3B72","north-tees":"#2A3B72","cleveland":"#2A3B72","E12000001":"#B7410E"};
+  var BOROUGH_KEY=[["Darlington","#900030"],["Hartlepool","#248000"],["Middlesbrough","#EF8A00"],["Redcar & Cleveland","#217887"],["Stockton-on-Tees","#1D8AD7"],["Tees Valley / combined","#2A3B72"],["North East","#B7410E"]];
+  function nodeColor(d){if(d.type==="Political party")return PARTYC[d.id]||"#495057";if(d.subtype==="pharmacy"||d.subtype==="pharmacy owner")return COLS[d.subtype];return d.org?(COLS[d.subtype]||"#868e96"):(COLT[d.type]||"#888");}
+  function nodeShape(d){ if(d.type==="Political party") return "pentagon"; if(d.subtype==="pharmacy") return "ellipse"; if(d.subtype==="pharmacy owner") return "round-rectangle"; if(!d.org) return "ellipse"; if(d.subtype==="member") return "diamond"; if(d.subtype==="committee") return "round-hexagon"; if(d.subtype==="practice") return "ellipse"; if(d.subtype==="board") return "diamond"; return "round-rectangle";}
+  function edgeColor(e){ var k=e.data('kind'); if(k==='party'){ return PARTYC[e.target().id()]||'#868e96'; } return KIND[k]||'#c4cad2'; }
   function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
 
   // --- Geography lenses -------------------------------------------------------
@@ -89,6 +97,13 @@
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#f08c00"></span>Funding</div>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#adb5bd"></span>Membership &amp; representation</div>'
    + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#7048e8;border-top-style:dashed"></span>Partnership &amp; delivery</div>'
+   + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#868e96"></span>Party — sits as (current)</div>'
+   + '<div class="rsm-kind"><span class="rsm-kl" style="border-top-color:#868e96;border-top-style:dashed"></span>Party — formerly (past)</div>'
+   + '<h3>Colour nodes by</h3><select class="rsm-field rsm-colourby"><option value="type">Node type (default)</option><option value="party">Political party</option><option value="borough">Tees Valley borough</option></select>'
+   + '<div class="rsm-boroughkey" hidden></div>'
+   + '<h3>Political party</h3>'
+   + '<select class="rsm-field rsm-party"><option value="">All parties</option></select>'
+   + '<div class="rsm-partykey"></div>'
    + '<h3>System domain</h3><select class="rsm-field rsm-domain"><option value="">All domains</option></select>'
    + '<h3>Geography tier</h3><select class="rsm-field rsm-tier"><option value="">All tiers</option></select>'
    + '<h3>Layout</h3><select class="rsm-field rsm-layout"><option value="fcose">Tidy (fcose)</option><option value="cose">Force</option><option value="concentric">Concentric</option><option value="breadthfirst">Hierarchy</option></select>'
@@ -131,6 +146,12 @@
       (adj[s]=adj[s]||[]).push(t); (adj[t]=adj[t]||[]).push(s); });
     var lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj);
     var peopleById={}; (data.people||[]).forEach(function(p){ peopleById[p.id]=p; });
+    var colourMode='type';
+    function partyOf(d){ if(d.type==='Political party') return d.id; if(d.person_ref){ var per=peopleById[d.person_ref]; if(per&&per.kind==='elected'){ return (per.mandate&&per.mandate.party)||'Independent'; } } return null; }
+    function partyColour(d){ var p=partyOf(d); return p?(PARTYC[p]||'#adb5bd'):'#ced4da'; }
+    function boroughColour(d){ return BOROUGHC[d.area]||'#ced4da'; }
+    function nodeColorMode(d){ if(colourMode==='party') return partyColour(d); if(colourMode==='borough') return boroughColour(d); return nodeColor(d); }
+    function reColour(){ cy.nodes().forEach(function(n){ if(n.isParent())return; n.style('background-color',nodeColorMode(n.data())); }); }
     function recomputeLens(){ lensKey=q('.rsm-lens')?q('.rsm-lens').value:lensKey;
       contextOn=q('.rsm-context')?q('.rsm-context').checked:contextOn;
       lensAllowed=lensAllowedSet(lensKey,contextOn,data.nodes,adj); }
@@ -142,9 +163,9 @@
 
     var cy=window.cytoscape({container:q('.rsm-cy'),elements:data.nodes.concat(data.edges),wheelSensitivity:.2,
      style:[
-      {selector:'node',style:{'background-color':function(e){return nodeColor(e.data());},'shape':function(e){return nodeShape(e.data());},'label':'data(label)','font-size':8,'color':'#2b2f33','text-wrap':'wrap','text-max-width':92,'text-valign':'bottom','text-margin-y':3,'border-width':function(e){return e.data('status')==='verify'?2:0;},'border-color':'#d9480f','border-style':'dashed'}},
+      {selector:'node',style:{'background-color':function(e){return nodeColorMode(e.data());},'shape':function(e){return nodeShape(e.data());},'label':'data(label)','font-size':8,'color':'#2b2f33','text-wrap':'wrap','text-max-width':92,'text-valign':'bottom','text-margin-y':3,'border-width':function(e){return e.data('status')==='verify'?2:0;},'border-color':'#d9480f','border-style':'dashed'}},
       {selector:'node:parent',style:{'background-opacity':0.55,'background-color':'#eef1f5','border-width':1,'border-color':'#d4dae1','shape':'round-rectangle','text-valign':'top','text-halign':'center','text-margin-y':7,'font-size':9,'text-transform':'uppercase','color':'#8a94a0','padding':20}},
-      {selector:'edge',style:{'width':function(e){return Math.max(1,e.data('weight')||1);},'line-color':function(e){return KIND[e.data('kind')]||'#c4cad2';},'line-style':function(e){var k=e.data('kind');return (k==='political'||k==='delivery')?'dashed':'solid';},'target-arrow-color':function(e){return KIND[e.data('kind')]||'#c4cad2';},'target-arrow-shape':'triangle','arrow-scale':.75,'curve-style':'bezier','opacity':.6}},
+      {selector:'edge',style:{'width':function(e){return Math.max(1,e.data('weight')||1);},'line-color':function(e){return edgeColor(e);},'line-style':function(e){var k=e.data('kind');if(k==='party')return e.data('label')==='formerly'?'dashed':'solid';return (k==='political'||k==='delivery')?'dashed':'solid';},'target-arrow-color':function(e){return edgeColor(e);},'target-arrow-shape':'triangle','arrow-scale':.75,'curve-style':'bezier','opacity':.6}},
       {selector:'.rsm-faded',style:{'opacity':.07,'text-opacity':.04}},
       {selector:'.rsm-hl',style:{'opacity':1,'text-opacity':1}},
       {selector:'edge.rsm-hl',style:{'opacity':.95,'width':function(e){return Math.max(2,(e.data('weight')||1)+1);},'label':'data(label)','font-size':7.5,'color':'#495057','text-rotation':'autorotate','text-background-color':'#fff','text-background-opacity':.9,'text-background-padding':2}},
@@ -160,9 +181,11 @@
     function chosen(){var v=q('.rsm-layout').value; if(v==='fcose'&&!(window.cytoscapeFcose||window['cytoscape-fcose'])) v='cose'; return layouts[v]?layouts[v]():layouts.cose();}
     function relayout(){ cy.elements(':visible').layout(chosen()).run(); }
 
-    function nodeVisible(n){var d=n.data(); if(!lensAllowed[d.id]) return false; if(d.org){ if(!expanded[d.org]) return false; } else { if(hiddenTypes[d.type]) return false; } var t=q('.rsm-tier').value; if(t&&d.tier!==t) return false; var g=q('.rsm-domain').value; if(g&&d.group!==g) return false; return true; }
+    function nodeVisible(n){var d=n.data(); if(!lensAllowed[d.id]) return false; if(d.org){ if(!expanded[d.org]) return false; } else { if(hiddenTypes[d.type]) return false; } var t=q('.rsm-tier').value; if(t&&d.tier!==t) return false; var g=q('.rsm-domain').value; if(g&&d.group!==g) return false;
+      var pf=q('.rsm-party')?q('.rsm-party').value:''; if(pf){ var po=partyOf(d); if(d.type==='Political party'){ if(d.id!==pf) return false; } else if(po!==null){ if(pf==='Independent'){ if(po!=='Independent'&&po!=='Independent Union') return false; } else if(po!==pf) return false; } }
+      return true; }
     function sizeByDegree(on){ cy.nodes().forEach(function(n){ if(n.isParent()){return;} if(n.data('org')){ n.style({'width':20,'height':20,'font-size':7.5}); return; } var dg=n.connectedEdges(':visible').length; var s=on?16+dg*3.5:22; n.style({'width':s,'height':s,'font-size':Math.min(12,8+dg*0.4)}); }); }
-    function apply(){ cy.batch(function(){ cy.nodes().forEach(function(n){ n.style('display',nodeVisible(n)?'element':'none'); }); cy.edges().forEach(function(e){ var v=e.source().style('display')==='element'&&e.target().style('display')==='element'; e.style('display',v?'element':'none'); }); }); sizeByDegree(q('.rsm-sizedeg').checked); stats(); orgBtns(); }
+    function apply(){ cy.batch(function(){ cy.nodes().forEach(function(n){ n.style('display',nodeVisible(n)?'element':'none'); }); cy.edges().forEach(function(e){ var v=e.source().style('display')==='element'&&e.target().style('display')==='element'; e.style('display',v?'element':'none'); }); }); sizeByDegree(q('.rsm-sizedeg').checked); reColour(); stats(); orgBtns(); }
     function stats(){ q('.rsm-n').textContent=cy.nodes(':visible').length; q('.rsm-t').textContent=data.nodes.filter(function(n){return !n.data.org && lensAllowed[n.data.id];}).length; q('.rsm-v').textContent=data.nodes.filter(function(n){return n.data.status==='verify' && lensAllowed[n.data.id];}).length; }
 
     function toggleOrg(o){ expanded[o]=!expanded[o]; apply(); relayout(); }
@@ -196,7 +219,7 @@
       if(d.status==='verify') h+='<div class="rsm-vf">⚠ Flagged to verify</div>';
       if(d.appointed&&d.appointed.source) h+='<div class="rsm-src">Appointment'+(d.appointed.as_of?' (as of '+esc(d.appointed.as_of)+')':'')+': <a href="'+esc(d.appointed.source)+'" target="_blank" rel="noopener">source ↗</a></div>';
       if(d.source) h+='<div class="rsm-src"><a href="'+esc(d.source)+'" target="_blank" rel="noopener">Source ↗</a></div>';
-      var RK=[['political','Political / portfolio oversight'],['governance','Governance & accountability'],['officer','Line management'],['commissioning','Commissioning'],['funding','Funding'],['membership','Membership & representation'],['delivery','Partnership & delivery']];
+      var RK=[['political','Political / portfolio oversight'],['party','Party affiliation'],['governance','Governance & accountability'],['officer','Line management'],['commissioning','Commissioning'],['funding','Funding'],['membership','Membership & representation'],['delivery','Partnership & delivery']];
       var any=false; RK.forEach(function(rk){var r=relList(n,rk[0]); if(r){any=true; h+='<h5 class="rsm-h5">'+rk[1]+'</h5>'+r;}});
       if(!any) h+='<h5 class="rsm-h5">Connections</h5><div class="rsm-rel">None currently visible</div>';
       q('.rsm-detail').innerHTML=h; container.classList.add('rsm-detail-open');
@@ -208,6 +231,14 @@
     Object.keys(tiers).sort().forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;q('.rsm-tier').appendChild(o);});
     var doms={}; data.nodes.forEach(function(n){if(n.data.group)doms[n.data.group]=(doms[n.data.group]||0)+1;});
     Object.keys(doms).sort().forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g+' ('+doms[g]+')';q('.rsm-domain').appendChild(o);});
+    // political parties: filter options + colour key
+    var partyNodes=data.nodes.filter(function(n){return n.data.type==='Political party';}).map(function(n){return n.data.id;});
+    (function(){ var sel=q('.rsm-party'); if(sel){ partyNodes.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+        var hasInd=(data.people||[]).some(function(p){return p.kind==='elected'&&(!(p.mandate&&p.mandate.party)||/Independent/.test(p.mandate.party||''));});
+        if(hasInd){var oi=document.createElement('option');oi.value='Independent';oi.textContent='Independent / none';sel.appendChild(oi);} }
+      var key=q('.rsm-partykey'); if(key){ partyNodes.forEach(function(p){ var el=document.createElement('div'); el.className='rsm-li'; el.style.cursor='default'; el.innerHTML='<span class="rsm-sw" style="background:'+(PARTYC[p]||'#adb5bd')+';border-radius:50%"></span>'+esc(p); key.appendChild(el); }); }
+    })();
+    (function(){ var bk=q('.rsm-boroughkey'); if(bk){ BOROUGH_KEY.forEach(function(b){ var el=document.createElement('div'); el.className='rsm-li'; el.style.cursor='default'; el.innerHTML='<span class="rsm-sw" style="background:'+b[1]+'"></span>'+esc(b[0]); bk.appendChild(el); }); } })();
     // legend
     var counts={}; data.nodes.forEach(function(n){if(!n.data.org&&n.data.subtype!=='pharmacy owner')counts[n.data.type]=(counts[n.data.type]||0)+1;});
     var legend=q('.rsm-legend');
@@ -235,12 +266,14 @@
     q('.rsm-collapseall').onclick=function(){ expanded={}; apply(); relayout(); };
     q('.rsm-tier').onchange=function(){ apply(); relayout(); };
     q('.rsm-domain').onchange=function(){ apply(); relayout(); };
+    if(q('.rsm-colourby')) q('.rsm-colourby').onchange=function(e){ colourMode=e.target.value; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=(colourMode!=='borough'); reColour(); };
+    if(q('.rsm-party')) q('.rsm-party').onchange=function(){ apply(); relayout(); };
     if(q('.rsm-lens')) q('.rsm-lens').onchange=function(){ recomputeLens(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
     if(q('.rsm-context')) q('.rsm-context').onchange=function(){ recomputeLens(); apply(); relayout(); };
     q('.rsm-layout').onchange=relayout;
     q('.rsm-sizedeg').onchange=function(e){ sizeByDegree(e.target.checked); };
     q('.rsm-fit').onclick=function(){ cy.fit(cy.elements(':visible'),40); };
-    q('.rsm-reset').onclick=function(){ expanded={}; hiddenTypes={}; q('.rsm-tier').value=''; q('.rsm-domain').value=''; container.querySelectorAll('.rsm-legend .rsm-li').forEach(function(e){e.classList.remove('rsm-off');}); clearSel(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
+    q('.rsm-reset').onclick=function(){ expanded={}; hiddenTypes={}; q('.rsm-tier').value=''; q('.rsm-domain').value=''; if(q('.rsm-party'))q('.rsm-party').value=''; if(q('.rsm-colourby'))q('.rsm-colourby').value='type'; if(q('.rsm-boroughkey'))q('.rsm-boroughkey').hidden=true; colourMode='type'; container.querySelectorAll('.rsm-legend .rsm-li').forEach(function(e){e.classList.remove('rsm-off');}); clearSel(); apply(); relayout(); setTimeout(function(){cy.fit(cy.elements(':visible'),40);},650); };
     // search datalist
     var dl=q('.rsm-names'); data.nodes.forEach(function(n){var o=document.createElement('option');o.value=n.data.label;dl.appendChild(o);});
     q('.rsm-search').addEventListener('change',function(e){ var m=null; for(var i=0;i<data.nodes.length;i++){if(data.nodes[i].data.label===e.target.value){m=data.nodes[i];break;}} if(!m)return; if(m.data.org&&!expanded[m.data.org]){expanded[m.data.org]=1;apply();relayout();} var n=cy.getElementById(m.data.id); setTimeout(function(){cy.animate({center:{eles:n},zoom:1.3},{duration:400});selectNode(n);},m.data.org?650:0); });
